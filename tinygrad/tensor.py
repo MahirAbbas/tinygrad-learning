@@ -31,10 +31,12 @@ class Tensor:
   __deletable__ = ('_ctx',)
   # similar to static. ClassVar = "ClassVariable". Variable is shared across class, not objects
   # training: ClassVar[bool] = False
-
   # same as training = False
   # the ": ClassVar[bool]" is a type hint. Hints to "python" that the value should be a bool
-#  ClassVar also hints that it is a ClassVariable
+
+#  
+
+
 
   training: ClassVar[bool] = False
   no_grad: ClassVar[bool] = False

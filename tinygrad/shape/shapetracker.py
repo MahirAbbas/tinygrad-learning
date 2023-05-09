@@ -10,20 +10,41 @@ from tinygrad.shape.symbolic import Variable, MulNode, NumNode, Node, SumNode, M
 class MovementOps(Enum): RESHAPE = auto(); PERMUTE = auto(); EXPAND = auto(); PAD = auto(); SHRINK = auto(); STRIDE = auto() # noqa: E702
 
 def check_no_mul(test, var):
-  if test == var: return True
-  if isinstance(test, SumNode): return any(check_no_mul(x, var) for x in test.nodes) # in a sum is okay
-  if isinstance(test, ModNode) and test.b%4 == 0: return check_no_mul(test.a, var)   # removing a mod is okay
+  # If the test node is the variable we're looking for, return True
+  if test == var: 
+    return True
+  # If the test node is a SumNode, recursively check all its child nodes. 
+  # If any child node doesn't involve multiplication with var, return True
+  if isinstance(test, SumNode): 
+    return any(check_no_mul(x, var) for x in test.nodes) 
+  # If the test node is a ModNode and the second operand is divisible by 4, 
+  # recursively check its first operand. If the first operand doesn't involve 
+  # multiplication with var, return True
+  if isinstance(test, ModNode) and test.b%4 == 0: 
+    return check_no_mul(test.a, var) 
+  # If none of the above conditions are met, return False
   return False
+
 
 @functools.lru_cache(maxsize=None)
 def to_shape_strides(shape:Tuple[int, ...], strides:Tuple[int, ...]) -> List[Tuple[int, int]]:
+  # Assert that the shape and strides have the same length
   assert len(shape) == len(strides)
+  
+  # Initialize ret with the first shape and stride, if they exist
   ret = [(shape[0], strides[0])] if len(shape) > 0 else []
+  
+  # Loop over the remaining shapes and strides
   for i in range(1, len(shape)):
+    # Check if the current stride is compatible with the last stride in ret
     if (strides[i] != 0 and ret[-1][1] == shape[i]*strides[i]) or ret[-1][0] == 1 or (strides[i] == 0 and ret[-1][1] == 0):
+      # If compatible, update the last shape and stride in ret
       ret[-1] = (ret[-1][0] * shape[i], strides[i])
     else:
+      # If not compatible, append a new shape and stride to ret
       ret.append((shape[i], strides[i]))
+  
+  # Return the simplified shape and strides
   return ret
 
 @functools.lru_cache(maxsize=None)
