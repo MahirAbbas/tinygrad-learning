@@ -42,7 +42,6 @@ There's a lot of interest in tinygrad lately. Here's some guidelines for contrib
 
 ```python
 from tinygrad.tensor import Tensor
-
 x = Tensor.eye(3, requires_grad=True)
 y = Tensor([[2.0,0,-2.0]], requires_grad=True)
 z = y.matmul(x).sum()
